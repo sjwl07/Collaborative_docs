@@ -11,7 +11,8 @@
 using namespace std;
 
 bool insertIntoFile(const string& path,const string& text,size_t pos);
-
+long getFileSize(const string& path);
+bool deleteFromFile(const string& path, size_t pos, size_t length);
 class Operation {
 public:
     string type;
