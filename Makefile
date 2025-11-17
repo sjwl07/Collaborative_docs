@@ -3,11 +3,11 @@ CXXFLAGS = -Wall -O2
 
 all: client server
 
-client: client2.cpp utils2.cpp
-	$(CXX) $(CXXFLAGS) -o client client2.cpp utils2.cpp
+client: client.cpp utils.cpp
+	$(CXX) $(CXXFLAGS) -o client client.cpp utils.cpp
 
 server: server.cpp utils.cpp
-	$(CXX) $(CXXFLAGS) -o server server2.cpp utils2.cpp
+	$(CXX) $(CXXFLAGS) -o server server.cpp utils.cpp
 
 clean:
 	rm -f client server
