@@ -22,7 +22,6 @@ const int MAX_EVENTS = 64;
 string out_path = "server_document.txt"; // Added document persistence path
 int serverVersion = 0;
 
-
 typedef struct client_data{
     sockaddr_in addr;
     size_t cursor;
@@ -34,52 +33,39 @@ typedef struct OP_Node{
 } OP_Node;
 
 OP_Node* head = NULL; // Head of the linked list (should be the oldest operation)
-
 string readDocumentContent(const string& path) {
     ifstream file(path);
     if (!file.is_open()) {
-        // If file doesn't exist or can't be opened, return an empty string.
         return "";
     }
     stringstream buffer;
     buffer << file.rdbuf();
     return buffer.str();
 }
-
 void send_to_new_client(int client_socket, const string& document_content){
     Operation* s_pkt = new Operation("INSERT", 0, document_content, "1", serverVersion);
     string s_str = s_pkt->toString();
     send(client_socket, s_str.c_str(), s_str.length(), 0);
 }
-
-// Insertion in INCREASING order of version (oldest first) - FIX
 void insertNode(const Operation &op) {
     OP_Node* new_node = new OP_Node();
     new_node->op = op;
     new_node->next = nullptr;
-
-    // Case 1: empty list OR new node becomes new head (smallest version)
     if (!head || op.localVersion < head->op.localVersion) { // Changed to '<'
         new_node->next = head;
         head = new_node;
         return;
     }
-
-    // Case 2: find insertion point
     OP_Node* curr = head;
     while (curr->next &&
            curr->next->op.localVersion < op.localVersion) { // Changed to '<'
         curr = curr->next;
     }
-
-    // Insert after curr
     new_node->next = curr->next;
     curr->next = new_node;
 }
 
-
 unordered_map<int, client_data> client_map;
-
 // Sends the transformed operation (s_str) to all clients except the sender,
 // and sends an acknowledgment (e_str) to the sender.
 void sendToClients(int sender_sd, string& s_str, string& e_str){
@@ -96,19 +82,30 @@ void sendToClients(int sender_sd, string& s_str, string& e_str){
 
 void handle_client_pkt(int sd, string& r_str){
     Operation r_pkt = Operation::fromString(r_str);
-
+    if(r_pkt.type=="MOVE_CURSOR"){
+        client_map[sd].cursor = r_pkt.position;
+        return;
+    }
+    long r_pkt_len_or_count = 0;
+    if (r_pkt.type == "INSERT") {
+        r_pkt_len_or_count = r_pkt.content.length();
+    } else if (r_pkt.type == "DELETE") {
+        r_pkt_len_or_count = stol(r_pkt.content);
+    }
     // Case 1: Packet is up-to-date (r_pkt.localVersion == serverVersion)
     if (r_pkt.localVersion == serverVersion){
         // Apply to document and history
-        insertIntoFile(out_path, r_pkt.content, r_pkt.position); // Added document update
+        if (r_pkt.type == "INSERT") {
+            insertIntoFile(out_path, r_pkt.content, r_pkt.position); 
+        } else if (r_pkt.type == "DELETE") {
+            deleteFromFile(out_path, r_pkt.position, r_pkt_len_or_count);
+        }
+        // insertIntoFile(out_path, r_pkt.content, r_pkt.position); 
         insertNode(r_pkt); 
-
         serverVersion++;
-        r_pkt.localVersion = serverVersion; // Assign the new version number
-        
-        // Prepare broadcast (s_str) and echo (e_str)
+        r_pkt.localVersion = serverVersion;
         string s_str = r_pkt.toString();
-        r_pkt.content = ""; // Empty content for acknowledgment (ACK)
+        r_pkt.content = "";
         string e_str = r_pkt.toString();
 
         sendToClients(sd, s_str, e_str);
@@ -116,22 +113,24 @@ void handle_client_pkt(int sd, string& r_str){
         return;
     }
     
-    // Case 2: Packet is stale (r_pkt.localVersion < serverVersion) - REQUIRES TRANSFORMATION
     else if (r_pkt.localVersion < serverVersion){
         
         OP_Node* curr = head;
-
-        // Traverse history to transform the incoming op (r_pkt) against ops 
-        // applied since the client generated r_pkt.
         while (curr) {
-            // Only consider operations that have been applied *after* the client's base version
             if (curr->op.localVersion > r_pkt.localVersion) {
-                
-                Operation& transform_op = curr->op; // The op already applied by the server
-                
-                // Transformation Rule (Insert vs Insert):
-                // If the applied op (transform_op) was inserted before or at the 
-                // position of the incoming op (r_pkt), shift the incoming op's position.
+                Operation& transform_op = curr->op;
+                if (transform_op.type == "INSERT") {
+                    long ins_len = transform_op.content.length();
+                    if (transform_op.position <= r_pkt.position) {
+                        r_pkt.position += ins_len;
+                    }
+                }
+                else if (transform_op.type == "DELETE") {
+                    long del_len = stol(transform_op.content);
+                    if (transform_op.position < r_pkt.position) {
+                        r_pkt.position -= min((long)r_pkt.position - transform_op.position, del_len);
+                    }
+                }
                 if (transform_op.position <= r_pkt.position) {
                     r_pkt.position += transform_op.content.length();
                 }
@@ -142,16 +141,13 @@ void handle_client_pkt(int sd, string& r_str){
             }
             curr = curr->next;
         }
-
-        // The operation is now transformed (r_pkt.position is correct).
-        // Apply it and update history/version.
-        insertIntoFile(out_path, r_pkt.content, r_pkt.position); // Added document update
-        insertNode(r_pkt); 
-
+        if (r_pkt.type == "INSERT") {
+            insertIntoFile(out_path, r_pkt.content, r_pkt.position);
+        } else if (r_pkt.type == "DELETE") {
+            deleteFromFile(out_path, r_pkt.position, r_pkt_len_or_count);
+        }
         serverVersion++;
         r_pkt.localVersion = serverVersion;
-        
-        // Prepare broadcast (s_str) and echo (e_str)
         string s_str = r_pkt.toString();
         r_pkt.content = "";
         string e_str = r_pkt.toString();
@@ -160,10 +156,6 @@ void handle_client_pkt(int sd, string& r_str){
         cout << "[Server] Transformed and Applied V" << serverVersion << ". Broadcast complete." << endl;
         return;
     }
-    
-    // Case 3: Packet is future (r_pkt.localVersion > serverVersion)
-    // This usually means the server missed some operations.
-    // For simplicity, we ignore it here, but in a robust system, this would queue the packet.
     else {
         cout << "[Server] Warning: Received future packet V" << r_pkt.localVersion << ", current V" << serverVersion << ". Ignoring." << endl;
     }
@@ -234,7 +226,7 @@ int main() {
                 string document_content = readDocumentContent(out_path);
                 send_to_new_client(new_socket,document_content);
                 
-                event.events = EPOLLIN | EPOLLET; // Edge-triggered
+                event.events = EPOLLIN | EPOLLET; 
                 event.data.fd = new_socket;
                 if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, new_socket, &event) == -1) {
                     perror("epoll_ctl");
@@ -243,8 +235,6 @@ int main() {
             }
             else {
                 int sd = events[i].data.fd;
-                // Since this is edge-triggered (EPOLLET), read everything available
-                // In a proper application, you'd loop read() until it returns 0 or -1 with errno != EAGAIN
                 valread = read(sd, buffer, BUFFER_SIZE - 1); // Read up to size-1
                 if (valread == 0) {
                     sockaddr_in addr = client_map[sd].addr;
@@ -264,8 +254,6 @@ int main() {
             }
         }
     }
-
     close(master_socket);
-    // Note: Proper cleanup of the OP_Node linked list (deleting nodes) is needed for production.
     return 0;
 }
