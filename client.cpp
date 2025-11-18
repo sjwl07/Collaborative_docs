@@ -20,9 +20,9 @@ void handle_remote_pkt(string& message){
     if (pkt.type == "INSERT") {
         if (!pkt.content.empty()) {
             insertIntoFile(out_path, pkt.content, pkt.position);
-        }
-        if (pkt.position < cursor_index){
-            cursor_index += pkt.content.length(); 
+            if (pkt.position < cursor_index){
+                cursor_index += pkt.content.length(); 
+            }
         }
     } 
     else if (pkt.type == "DELETE" && !pkt.content.empty()) {
@@ -41,7 +41,10 @@ void handle_remote_pkt(string& message){
     }
 
     local_version = pkt.localVersion;
-    cout<<"\ncursor_index after op:"<<cursor_index<<endl;
+
+    if (!pkt.content.empty()){
+        cout<<"\ncursor_index after op:"<<cursor_index<<endl;
+    }
     // local_version = pkt.localVersion;
     // cout<<"\ncursor_index after op:"<<cursor_index<<endl;
     // if (!pkt.content.empty()) {
@@ -53,17 +56,20 @@ void handle_remote_pkt(string& message){
     // local_version = pkt.localVersion;
     // cout<<"cursor_index after op:"<<cursor_index<<endl;
 }
+
 void handle_local_delete(long position, long length) {
     if (length <= 0) return;
     deleteFromFile(out_path, position, length);
     cursor_index = position; // Move cursor to the start of deletion
     cout << "cursor_index after op:" << cursor_index << endl;
 }
+
 void handle_local_packet(string& message){
     insertIntoFile(out_path, message, cursor_index);
     cursor_index += message.length(); 
     cout<<"cursor_index after op:"<<cursor_index<<endl;
 }
+
 void receive_thread(int sock) {
     char buffer[BUFFER_SIZE];
     while (true) {
@@ -71,7 +77,7 @@ void receive_thread(int sock) {
         if (valread > 0) {
             buffer[valread] = '\0';
             std::string r_str(buffer);
-            cout << "\nServer response: " << r_str << endl;
+            // cout << "\nServer response: " << r_str << endl;
             handle_remote_pkt(r_str);
         } else if (valread == 0) {
             cout << "\nServer disconnected." << endl;
@@ -85,8 +91,9 @@ void receive_thread(int sock) {
     }
 }
 
-
 int main() {
+    ofstream clear_file(out_path, std::ios::trunc);
+
     int sock = 0;
     struct sockaddr_in serv_addr;
     if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
@@ -128,6 +135,7 @@ int main() {
                 long new_pos = stol(pos_int);
                 new_pos=max(0L,min(getFileSize(out_path),new_pos));
                 cursor_index=new_pos;
+                cout<<"cursor_index after op:"<<cursor_index<<endl;
                 Operation* s_pkt = new Operation("MOVE_CURSOR", cursor_index, "", "1", local_version);
                 string s_str = s_pkt->toString();
                 send(sock, s_str.c_str(), s_str.length(), 0);
