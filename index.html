@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CN Project Documentation</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #4A90E2; 
+            --primary-dark: #357ABD;
+            --text-color-dark: #2C3E50;
+            --text-color-light: #7F8C8D; 
+            --background-light: #F8F9FA; 
+            --background-card: #FFFFFF; 
+            --border-color: #E0E6ED; 
+            --shadow-light: rgba(0, 0, 0, 0.08);
+            --shadow-medium: rgba(0, 0, 0, 0.12);
+            --code-bg: #f4f6f8;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--background-light);
+            margin: 0;
+            padding: 20px;
+            color: var(--text-color-dark);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .tab-container {
+            width: 90%;
+            max-width: 850px;
+            margin: 40px auto;
+            background: var(--background-card);
+            border-radius: 12px; 
+            box-shadow: 0 10px 30px var(--shadow-medium); 
+            overflow: hidden;
+            border: 1px solid var(--border-color); 
+        }
+
+        .tab-buttons {
+            display: flex;
+            background-color: var(--background-light);
+            border-bottom: 1px solid var(--border-color); 
+        }
+
+        .tab-button {
+            flex: 1; 
+            padding: 16px 20px;
+            cursor: pointer;
+            background-color: transparent;
+            border: none;
+            outline: none;
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--text-color-light);
+            transition: all 0.3s ease; 
+            position: relative;
+            text-align: center;
+        }
+
+        .tab-button:not(.active):hover {
+            color: var(--text-color-dark);
+            background-color: rgba(var(--primary-color), 0.05); 
+        }
+
+        .tab-button.active {
+            color: var(--primary-color);
+            font-weight: 600;
+            background-color: var(--background-card); 
+        }
+
+        .tab-button.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px; 
+            left: 0;
+            right: 0;
+            height: 3px;
+            background-color: var(--primary-color);
+            border-radius: 2px 2px 0 0;
+            transition: all 0.3s ease;
+        }
+
+        .tab-content-area {
+            padding: 25px 40px;
+            background-color: var(--background-card);
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.4s ease-out; 
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .tab-content h3 {
+            color: var(--primary-color);
+            font-size: 24px;
+            margin-top: 0;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .tab-content h4 {
+            color: var(--text-color-dark);
+            font-size: 18px;
+            margin-top: 25px;
+            margin-bottom: 10px;
+            font-weight: 600;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 8px;
+        }
+
+        .tab-content p, .tab-content li {
+            margin-bottom: 0.8em;
+            color: var(--text-color-dark);
+            font-size: 15px;
+        }
+        
+        .tab-content ul, .tab-content ol {
+            padding-left: 20px;
+            margin-top: 0;
+        }
+
+        
+        code {
+            background-color: var(--code-bg);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.9em;
+            color: #d63384;
+        }
+
+        pre {
+            background-color: var(--code-bg);
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            border: 1px solid var(--border-color);
+        }
+        
+        pre code {
+            background-color: transparent;
+            padding: 0;
+            color: var(--text-color-dark);
+        }
+
+        a {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        a:hover {
+            text-decoration: underline;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="tab-container">
+        
+        <div class="tab-buttons">
+            <button class="tab-button active" data-tab="document">Document</button>
+            <button class="tab-button" data-tab="demo">Demo</button>
+        </div>
+
+        <div class="tab-content-area">
+            
+            <div id="document" class="tab-content active">
+                <h3>CN Project Design Documentation</h3>
+                
+                <h4>How to run the code</h4>
+                <ol>
+                    <li>Clone the given github repository.</li>
+                    <li>Run <code>make</code> on the terminal.</li>
+                    <li>Run <code>./server</code> on a machine.</li>
+                    <li>Change the IP address in <code>client.cpp</code> to the IP address of the server machine.</li>
+                    <li>Run <code>./client</code>.</li>
+                    <li>Type commands or text in the terminal and see the doc being updated in <code>client_ouput.txt</code>.</li>
+                </ol>
+
+                <h4>Features</h4>
+                <p>Our collaborative documentation allows the below commands:</p>
+                <ul>
+                    <li>Typing any text in the terminal inserts it in the doc at the cursor position.</li>
+                    <li>Typing <code>/exit</code> causes the client to exit the doc.</li>
+                    <li>Typing <code>/backspace {length}</code> backspaces from the cursor position till the given length.</li>
+                    <li>Typing <code>/cursor {index}</code> moves the cursor to the given position.</li>
+                    <li>To type “/exit” or any other command in the doc, prepend a <code>/</code>. Eg: <code>“//exit”</code>.</li>
+                    <li>A new client logging in will get the existing doc.</li>
+                </ul>
+
+                <h4>Implementation</h4>
+                <p>We used a basic server-client <strong>epoll</strong> implementation taken from code explained in tutorials and built our implementation on it.</p>
+                
+                <p>We started by defining an operation class to store and send updates made by a client. The Operations class was defined as:</p>
+                
+                <pre><code>class Operation {
+    string type;
+    int position;
+    string content;
+    string clientId;
+    int localVersion;
+}</code></pre>
+
+                <p>Now whenever a user enters something in their terminal it sends the operation as a string of the form <code>“OP|type|position|content|clientID|localVersion”</code>.</p>
+
+                <p>The server receives such operations, makes necessary changes to the index and broadcasts this packet to all users.</p>
+
+                <p>The server creates an instance of the client to the epoll instance when a new client joins. All its information is stored in an <code>unordered_map</code> on the server. Upon connecting, a new client immediately receives the full current state of the document to ensure they start in sync with the server.</p>
+                
+
+                <p>The server maintains a linked list of operations to maintain history.</p>
+                <p><strong><u>Handling Clashes</u></strong></p>
+                <p>The server maintains a global version and every time a client sends an operation packet it includes a local version. The local version represents the version of the doc the user was looking at when the required change was made. If the <code>local version == server version</code> the operation is applied immediately. Else if it is less than the server version,  i.e, the client is seeing an older version, we go to that point in the linked list and apply to all operations that have occurred since. Once the operation is done we give it a new global version and broadcast the operation to all other clients.</p>
+
+                <p>On the client side, on the input thread we check if the text written is a command like <code>/exit</code>, if not we treat it as text and create a packet and send it to the server. On the receiver thread we listen for incoming packets from the server, deserialize it and make the necessary changes.</p>
+
+                <h4>Resources</h4>
+                <p><strong>Github Link:</strong> <a href="https://github.com/sjwl07/Collaborative_docs" target="_blank">https://github.com/sjwl07/Collaborative_docs</a></p>
+            </div>
+
+            <div id="demo" class="tab-content">
+                <h3>Video Demonstration</h3>
+                <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; max-width: 100%; background: #000; border-radius: 8px;">
+                    <iframe 
+                        style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0;"
+                        
+                        src = "https://drive.google.com/file/d/1M82gFpIASz3dSSrA0qSrjOiPzuOvChpl/preview"
+                        frameborder="0" 
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                        allowfullscreen>
+                    </iframe>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        
+        const tabs = document.querySelectorAll('.tab-button');
+        const contents = document.querySelectorAll('.tab-content');
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const targetId = tab.dataset.tab;
+                tabs.forEach(t => t.classList.remove('active'));
+                contents.forEach(c => c.classList.remove('active'));
+                tab.classList.add('active');
+                const targetContent = document.getElementById(targetId);
+                targetContent.classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html>
