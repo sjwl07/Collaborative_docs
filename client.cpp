@@ -25,8 +25,9 @@ void handle_remote_pkt(string& message){
             cursor_index += pkt.content.length(); 
         }
     } 
-    else if (pkt.type == "DELETE") {
+    else if (pkt.type == "DELETE" && !pkt.content.empty()) {
         try {
+            cout<<"Content "<<pkt.content<<endl;
             long length_to_delete = stol(pkt.content);
             if (length_to_delete > 0) {
                 deleteFromFile(out_path, pkt.position, length_to_delete);
@@ -154,7 +155,7 @@ int main() {
                 Operation* s_pkt = new Operation("DELETE", pos_to_delete, to_string(actual_num_deleted), "1", local_version);
                 string s_str = s_pkt->toString();
                 
-                cout << "Sending V" << local_version << " op: " << s_str << endl;
+                // cout << "Sending V" << local_version << " op: " << s_str << endl;
                 
                 // 1. Send the packet
                 send(sock, s_str.c_str(), s_str.length(), 0);
@@ -172,7 +173,7 @@ int main() {
         // The operation's version must be the version it is based on (local_version)
         Operation* s_pkt = new Operation("INSERT", cursor_index, message, "1", local_version);
         string s_str = s_pkt->toString();
-        cout << "Sending V" << local_version << " op: " << s_str << endl;
+        // cout << "Sending V" << local_version << " op: " << s_str << endl;
         send(sock, s_str.c_str(), s_str.length(), 0);
         handle_local_packet(message);
         delete s_pkt; 
