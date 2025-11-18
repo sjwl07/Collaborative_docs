@@ -51,14 +51,14 @@ void insertNode(const Operation &op) {
     OP_Node* new_node = new OP_Node();
     new_node->op = op;
     new_node->next = nullptr;
-    if (!head || op.localVersion < head->op.localVersion) { // Changed to '<'
+    if (!head || op.localVersion < head->op.localVersion) {
         new_node->next = head;
         head = new_node;
         return;
     }
     OP_Node* curr = head;
     while (curr->next &&
-           curr->next->op.localVersion < op.localVersion) { // Changed to '<'
+           curr->next->op.localVersion < op.localVersion) {
         curr = curr->next;
     }
     new_node->next = curr->next;
