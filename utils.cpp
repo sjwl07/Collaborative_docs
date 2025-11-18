@@ -116,16 +116,12 @@ bool deleteFromFile(const string& path, size_t pos, size_t length) {
 
 Operation::Operation() = default;
 
-Operation::Operation(const string &type,
-                     int position,
-                     const string &content,
-                     const string &clientId,
-                     int localVersion)
-    : type(type),
-      position(position),
-      content(content),
-      clientId(clientId),
-      localVersion(localVersion) {}
+Operation::Operation(const string &type, int position, const string &content, const string &clientId, int localVersion)
+    :type(type),
+    position(position),
+    content(content),
+    clientId(clientId),
+    localVersion(localVersion) {}
 
 string Operation::toString() const {
     string pktStr;

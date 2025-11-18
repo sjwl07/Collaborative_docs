@@ -23,11 +23,7 @@ public:
 
     Operation();
 
-    Operation(const string &type,
-              int position,
-              const string &content,
-              const string &clientId,
-              int localVersion);
+    Operation(const string &type,int position,const string &content,const string &clientId,int localVersion);
 
     string toString() const;
     static Operation fromString(const string &s);
