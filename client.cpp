@@ -1,3 +1,4 @@
+//Change line 108 with server IP
 #include <iostream>
 #include <cstring>
 #include <unistd.h>
@@ -103,7 +104,7 @@ int main() {
 
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_port = htons(PORT);
-    //Replace "192.168.44.204" with your actual server IP if needed
+    //Replace with server IP
     if (inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr) <= 0) {
         printf("\nInvalid address/ Address not supported \n");
         return -1;
@@ -147,13 +148,12 @@ int main() {
         }
         else if(message.find("/backspace",0)==0){
             try{
-                string len_str = message.substr(11); // /backspace 
+                string len_str = message.substr(11); // handling /backspace 
                 long num_to_delete = stol(len_str);
 
                 if (num_to_delete <= 0) continue;
 
-                // Calculate deletion parameters
-                // Deletes *before* the cursor
+                // Calculate backspace params
                 long pos_to_delete = max(0L, (long)cursor_index - num_to_delete);
                 long actual_num_deleted = cursor_index - pos_to_delete;
 
@@ -164,11 +164,7 @@ int main() {
                 string s_str = s_pkt->toString();
                 
                 // cout << "Sending V" << local_version << " op: " << s_str << endl;
-                
-                // 1. Send the packet
                 send(sock, s_str.c_str(), s_str.length(), 0);
-                
-                // 2. Apply the change locally
                 handle_local_delete(pos_to_delete, actual_num_deleted);
 
                 delete s_pkt;

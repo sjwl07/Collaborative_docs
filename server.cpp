@@ -19,7 +19,7 @@ const int BUFFER_SIZE = 1024;
 const int MAX_EVENTS = 64;
 
 // Global document path and version
-string out_path = "server_document.txt"; // Added document persistence path
+string out_path = "server_document.txt";
 int serverVersion = 0;
 
 typedef struct client_data{
@@ -67,7 +67,7 @@ void insertNode(const Operation &op) {
 
 unordered_map<int, client_data> client_map;
 // Sends the transformed operation (s_str) to all clients except the sender,
-// and sends an acknowledgment (e_str) to the sender.
+// and sends an empty string (e_str) to the sender.
 void sendToClients(int sender_sd, string& s_str, string& e_str){
     for (const auto& client : client_map) {
         int client_sd = client.first;
