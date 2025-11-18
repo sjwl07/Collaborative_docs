@@ -2,8 +2,8 @@
 #include <fstream>
 #include <sstream>
 #include <vector>
-#include <iostream> // For cout used in file operations
-#include <cstdio>   // For FILE* and file functions
+#include <iostream> 
+#include <cstdio> 
 
 using namespace std;
 
@@ -65,7 +65,6 @@ long getFileSize(const string& path){
 }
 bool deleteFromFile(const string& path, size_t pos, size_t length) {
     string data;
-    // Try to open for reading
     FILE* f = fopen(path.c_str(), "rb");
     if (f) {
         fseek(f, 0, SEEK_END);
